@@ -86,13 +86,38 @@ Output: `results/replay.csv` (month by month) and `results/promotions.json`
 (every recipe change and why). Run it with `julia --project=. scripts/06_replay.jl`
 (about 45 seconds).
 
-### Next: a decade later
+### A decade later: 2020–2022
 
-The City of Ames publishes 2,224 sales from 2020–2022. 637 of them are the same
-parcels that sold in 2006–2010; in 422 the living area is unchanged. The typical
-house sold for 1.47× its earlier price, and cheaper neighborhoods rose the most
-(Edwards 1.59×, Northridge Heights 1.27×). Those repeat sales will test how far
-a 2010 model drifts in a decade, and how much the self-improving loop recovers.
+The City of Ames publishes 2,224 sales from 2020–2022. 422 of them are houses that
+also sold in 2006–2010 (same parcel, same living area). For each one, every method
+predicts the 2020–2022 price using only what was known before that sale
+(`src/decade.jl`). The FHFA index is lagged one quarter, because it is published
+late. The first three months only seed the learned corrections.
+
+| Method (394 sales scored, Apr 2020 – Dec 2022) | RMSE (log) | Average $ miss |
+|---|---|---|
+| Frozen 2010 model, as if nothing changed | 0.4481 (±56.5%) | $83,947 |
+| Frozen model × FHFA Ames price index | 0.1758 (±19.2%) | $32,182 |
+| Repeat sales: the house's own old price × index | 0.1734 (±18.9%) | $30,586 |
+| **Self-improving: index + correction learned month by month** | **0.1392 (±14.9%)** | **$25,967** |
+| Self-improving + how the house's old price compared to the model | 0.1377 (±14.8%) | $25,576 |
+
+- **A decade of drift breaks a frozen model.** It is off by about 56%, because
+  the typical house sold for 1.47× its earlier price.
+- **One citywide index fixes most of it, but not all.** Prices didn't rise evenly:
+  cheaper neighborhoods rose more (Edwards 1.59×) than pricey ones (Northridge
+  Heights 1.27×). A single index can't see that.
+- **The learned correction can.** Trained online on each month's sales, it picks up
+  neighborhood and price-tier drift and cuts the error by a fifth versus the index,
+  beating the textbook repeat-sales shortcut too.
+- **A house's own history barely helps** once the correction is learned (0.1392 →
+  0.1377), which suggests the 2010 model already captured most of what made each
+  house different.
+
+Caveat: the 2010 model trained on these same houses' earlier sales, so the frozen
+starting point is a little better than it would be for a brand-new house.
+
+Output: `results/decade_predictions.csv`. Run it with `julia --project=. scripts/07_decade.jl`.
 
 ## Architecture
 
@@ -113,7 +138,7 @@ flowchart LR
 ```sh
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 julia --project=. scripts/00_download.jl       # both public datasets
-julia --project=. test/runtests.jl            # 39 unit tests
+julia --project=. test/runtests.jl            # 46 unit tests
 julia --project=. scripts/01_baseline.jl      # steps 3–7 in order
 julia --project=. scripts/02_linear.jl
 julia --project=. scripts/03_evaluate.jl
@@ -121,6 +146,7 @@ julia --project=. scripts/04_improve.jl
 julia --project=. scripts/05_train_final.jl   # writes model/homestead_v2.json, scores test set
 julia --project=. test/test_serve.jl          # integration test of the endpoint
 julia --project=. scripts/06_replay.jl        # self-improving replay, ~45 s
+julia --project=. scripts/07_decade.jl        # 2020–2022 repeat-sale exam
 ```
 
 ### API
@@ -155,6 +181,7 @@ src/recipe.jl      feature bank and recipes the search evolves
 src/online.jl      online ridge by recursive least squares
 src/evolve.jl      genetic search over recipes
 src/replay.jl      month-by-month replay, promotion, drift monitor
+src/decade.jl      2020–2022 repeat-sale exam with FHFA index
 docs/index.html    browser predictor app (GitHub Pages)
 scripts/           one script per step of the loop
 test/              unit tests + endpoint integration test

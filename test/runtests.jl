@@ -1,4 +1,4 @@
-using Test, DataFrames, Statistics
+using Test, DataFrames, Statistics, Dates
 include(joinpath(@__DIR__, "..", "src", "Homestead.jl"))
 using .Homestead
 
@@ -100,4 +100,16 @@ end
     p2 = Population(r; rng = MersenneTwister(1)); b2, f2 = evolve!(p2, bank, y, 1:1500, 1501:2000; generations = 2)
     @test b1 == b2 && f1 == f2                                              # same seed, same search
     @test f1 <= fitness(bank, y, r, 1:1500, 1501:2000)                      # elitism: never worse than the seed
+end
+
+@testset "decade exam inputs" begin
+    hpi = load_hpi()
+    @test hpi[(2006, 4)] ≈ 164.36 && hpi[(2022, 4)] ≈ 269.20                     # Ames, IA metro (CBSA 11180)
+    @test Homestead.lagged(hpi, 2021, 1) == hpi[(2020, 4)]                        # a 2021-Q1 sale only knows 2020-Q4
+    @test Homestead.lagged(hpi, 2021, 3) == hpi[(2021, 2)]
+    @test Homestead.parse_area("1,295, 1,295") === nothing && Homestead.parse_area(2062) == 2062
+    p = repeat_pairs()
+    @test nrow(p) == 422
+    @test all(abs.(p.area .- p[!, "Gr Liv Area"]) .<= 50)
+    @test all(year.(p.date) .>= 2020) && all(p[!, "Yr Sold"] .<= 2010)           # every pair goes forward in time
 end

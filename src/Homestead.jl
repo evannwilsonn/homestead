@@ -11,6 +11,7 @@ include("recipe.jl")
 include("online.jl")
 include("evolve.jl")
 include("replay.jl")
+include("decade.jl")
 
 export load_raw, clean, split_indices
 export rmse, mae, r2, pct_error
@@ -22,5 +23,6 @@ export kfold, cross_validate, worst_residuals
 export SavedModel, save_model, load_model, predict_price
 export FeatureBank, Recipe, Transform, fit_transform, build, nfeatures, describe_recipe, ENGINEERED
 export OnlineRidge, update!, Population, evolve!, fitness, replay, MonthResult
+export repeat_pairs, load_hpi, decade_exam
 
 end # module
