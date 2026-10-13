@@ -1,0 +1,4 @@
+data/raw/*.txt
+*.log
+.DS_Store
+_to_delete/
