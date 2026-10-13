@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>Homestead</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: an assessor's appraisal card. Inputs on the left as a worksheet, the valuation
+   pinned on the right like the stamped total; stacks to one column on phones, valuation first.
+   ALL VALUES BELOW ARE PROVISIONAL (no Homestead design system yet). */
+:root{
+  --paper:#f5f6f2; --surface:#ffffff; --ink:#17201b; --muted:#5b685f; --rule:#d8ddd6;
+  --field:#2e6a3a; --field-soft:#e3eee4; --rust:#a4441f; --rust-soft:#f6e5dd;
+  --display:"Archivo",ui-sans-serif,system-ui,sans-serif;
+  --body:"Public Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:6px; --gap:clamp(16px,2.4vw,28px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111613; --surface:#18201b; --ink:#e6ebe7; --muted:#97a49b; --rule:#2a342d;
+  --field:#80c08a; --field-soft:#1d2e21; --rust:#e48d66; --rust-soft:#35221a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111613; --surface:#18201b; --ink:#e6ebe7; --muted:#97a49b; --rule:#2a342d;
+  --field:#80c08a; --field-soft:#1d2e21; --rust:#e48d66; --rust-soft:#35221a; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:clamp(16px,4vw,48px);padding-block:0 64px}
+.wrap{max-width:1120px;margin-inline:auto}
+a{color:var(--field)}
+:focus-visible{outline:2px solid var(--field);outline-offset:2px}
+.mast{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px;padding-block:20px 18px;border-bottom:1px solid var(--rule)}
+.brand{font-family:var(--display);font-stretch:125%;font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+.brand span{color:var(--muted);font-weight:500;letter-spacing:.06em;font-stretch:100%;margin-left:10px;text-transform:none}
+.mast nav{display:flex;gap:18px;font-size:14px}
+.intro{padding-block:28px 22px;max-width:62ch}
+h1{font-family:var(--display);font-stretch:75%;font-weight:700;font-size:clamp(30px,4.6vw,48px);line-height:1;letter-spacing:-.01em;margin:0 0 10px;text-wrap:balance}
+.intro p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px);gap:var(--gap);align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:1fr}.result{order:-1}}
+.sheet{display:grid;gap:22px}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:12px;min-width:0}
+legend{font-family:var(--display);font-stretch:110%;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 0 8px;width:100%;border-bottom:1px solid var(--rule);margin-bottom:4px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 16px}
+.f{display:grid;gap:5px;min-width:0;align-content:start}
+.f label,.f .lab{font-size:13px;font-weight:500}
+.f .hint{font-size:12px;color:var(--muted)}
+input[type=number],select{font:inherit;font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
+select{font-family:var(--body);font-size:14px}
+input[type=number]:hover,select:hover{border-color:var(--muted)}
+input[aria-invalid=true]{border-color:var(--rust);background:var(--rust-soft)}
+.scale{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.scale output{font-family:var(--mono);font-size:13px;min-width:17ch;color:var(--muted)}
+.scale output b{color:var(--ink);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--field)}
+.seg{display:flex;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--surface);width:100%}
+.seg label{flex:1;position:relative;text-align:center;font-size:13px;padding:7px 4px;cursor:pointer;border-left:1px solid var(--rule);min-width:0}
+.seg label:first-child{border-left:0}
+.seg input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.seg label:has(input:checked){background:var(--field);color:var(--paper);font-weight:600}
+.seg label:has(input:focus-visible){outline:2px solid var(--field);outline-offset:-2px}
+.result{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:22px 22px 18px;display:grid;gap:18px;min-width:0}
+@media (max-width:880px){.result{position:static}}
+.eyebrow{font-family:var(--display);font-stretch:110%;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+.price{font-family:var(--display);font-stretch:68%;font-weight:700;font-size:clamp(56px,8vw,76px);line-height:.9;letter-spacing:-.01em;font-variant-numeric:tabular-nums;display:block;margin-top:6px}
+.band{font-size:14px;color:var(--muted);margin:8px 0 0}
+.band b{color:var(--ink);font-family:var(--mono);font-weight:500;font-size:13px}
+.track{position:relative;height:6px;background:var(--rule);border-radius:3px;margin-top:12px}
+.track i{position:absolute;top:-1px;bottom:-1px;background:var(--field-soft);border:1px solid var(--field);border-radius:3px}
+.track em{position:absolute;top:-4px;width:2px;height:14px;background:var(--ink)}
+.track-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px}
+.warn{font-size:13px;background:var(--rust-soft);color:var(--ink);border-left:3px solid var(--rust);padding:8px 10px;border-radius:0 var(--r) var(--r) 0}
+.drivers h2{font-family:var(--display);font-stretch:110%;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.drivers p{font-size:13px;color:var(--muted);margin:0 0 10px}
+.drivers p b{color:var(--ink);font-weight:600}
+.drv{display:grid;grid-template-columns:minmax(0,8em) 1fr 4.5em;gap:10px;align-items:center;font-size:13px;padding:5px 0}
+.drv .bar{position:relative;height:12px}
+.drv .bar::before{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted);opacity:.5}
+.drv .bar i{position:absolute;top:0;bottom:0;border-radius:2px}
+.drv .bar i.up{left:50%;background:var(--field)}
+.drv .bar i.down{right:50%;background:var(--rust)}
+.drv .v{font-family:var(--mono);font-size:12px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.drv .v.up{color:var(--field)}.drv .v.down{color:var(--rust)}
+.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px;margin:0}
+.reset{font:inherit;font-size:13px;background:none;border:1px solid var(--rule);color:var(--ink);border-radius:var(--r);padding:6px 10px;cursor:pointer;justify-self:start}
+.reset:hover{border-color:var(--muted)}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--rule);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:baseline;gap:12px;z-index:5}
+.dock b{font-family:var(--display);font-stretch:68%;font-weight:700;font-size:28px;font-variant-numeric:tabular-nums}
+.dock span{font-size:12px;color:var(--muted)}
+.method{margin-top:56px;border-top:1px solid var(--rule);padding-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--gap)}
+.method h3{font-family:var(--display);font-stretch:90%;font-weight:700;font-size:18px;margin:0 0 6px}
+.method p{margin:0;color:var(--muted);font-size:14px;max-width:46ch}
+.ledger{grid-column:1/-1;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+th{text-align:left;font-family:var(--display);font-stretch:110%;font-weight:600;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:6px 10px 8px;border-bottom:1px solid var(--rule)}
+td{padding:8px 10px;border-bottom:1px solid var(--rule)}
+td.n{font-family:var(--mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.final td{font-weight:600}
+tr.final td:first-child{box-shadow:inset 3px 0 0 var(--field)}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">Homestead<span>Ames, Iowa · sales 2006–2010</span></div>
+    <nav><a href="#method">How it works</a><a href="https://github.com/evannwilsonn/homestead">Source on GitHub</a></nav>
+  </header>
+
+  <section class="intro">
+    <h1>What would this house have sold for in Ames?</h1>
+    <p>Describe a house. A ridge regression trained on 2,486 real Ames sales prices it and shows what pushed the number up or down. Prices are 2006–2010 dollars.</p>
+  </section>
+
+  <div class="grid">
+    <form class="sheet" id="form" autocomplete="off">
+      <fieldset>
+        <legend>Location</legend>
+        <div class="f">
+          <label for="nbhd">Neighborhood</label>
+          <select id="nbhd" name="nbhd"></select>
+          <span class="hint" id="nbhd-hint"></span>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Size</legend>
+        <div class="row">
+          <div class="f"><label for="area">Living area above ground (sq ft)</label><input type="number" id="area" name="area" min="300" max="6000" step="10"></div>
+          <div class="f"><span class="lab" id="stories-l">Stories</span>
+            <div class="seg" role="radiogroup" aria-labelledby="stories-l">
+              <label><input type="radio" name="stories" value="1">One</label>
+              <label><input type="radio" name="stories" value="2">Two</label>
+            </div></div>
+        </div>
+        <div class="row">
+          <div class="f"><label for="bsmt">Basement (sq ft)</label><input type="number" id="bsmt" name="bsmt" min="0" max="4000" step="10"><span class="hint">0 for no basement</span></div>
+          <div class="f"><label for="bsmtFin">Finished basement (sq ft)</label><input type="number" id="bsmtFin" name="bsmtFin" min="0" max="4000" step="10"></div>
+          <div class="f"><label for="lot">Lot (sq ft)</label><input type="number" id="lot" name="lot" min="1000" max="250000" step="100"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Quality</legend>
+        <div class="f"><label for="qual">Overall material and finish</label>
+          <div class="scale"><output id="qual-o" for="qual"></output><input type="range" id="qual" name="qual" min="1" max="10" step="1"></div>
+          <span class="hint">The assessor's 1–10 rating. The Ames median is 6.</span></div>
+        <div class="row">
+          <div class="f"><span class="lab" id="kitchen-l">Kitchen</span>
+            <div class="seg" role="radiogroup" aria-labelledby="kitchen-l">
+              <label><input type="radio" name="kitchen" value="Fa">Fair</label>
+              <label><input type="radio" name="kitchen" value="TA">Typical</label>
+              <label><input type="radio" name="kitchen" value="Gd">Good</label>
+              <label><input type="radio" name="kitchen" value="Ex">Excellent</label>
+            </div></div>
+          <div class="f"><span class="lab" id="exterior-l">Exterior</span>
+            <div class="seg" role="radiogroup" aria-labelledby="exterior-l">
+              <label><input type="radio" name="exterior" value="Fa">Fair</label>
+              <label><input type="radio" name="exterior" value="TA">Typical</label>
+              <label><input type="radio" name="exterior" value="Gd">Good</label>
+              <label><input type="radio" name="exterior" value="Ex">Excellent</label>
+            </div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Age and condition</legend>
+        <div class="row">
+          <div class="f"><label for="built">Year built</label><input type="number" id="built" name="built" min="1870" max="2010" step="1"></div>
+          <div class="f"><label for="remod">Last remodel</label><input type="number" id="remod" name="remod" min="1870" max="2010" step="1"><span class="hint">Same as built if never</span></div>
+          <div class="f"><label for="sold">Year sold</label>
+            <select id="sold" name="sold"><option>2006</option><option>2007</option><option>2008</option><option>2009</option><option>2010</option></select></div>
+        </div>
+        <div class="f"><label for="cond">Overall condition</label>
+          <div class="scale"><output id="cond-o" for="cond"></output><input type="range" id="cond" name="cond" min="1" max="10" step="1"></div></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Rooms and features</legend>
+        <div class="row">
+          <div class="f"><label for="beds">Bedrooms</label><input type="number" id="beds" name="beds" min="0" max="8" step="1"></div>
+          <div class="f"><label for="fullBath">Full baths</label><input type="number" id="fullBath" name="fullBath" min="0" max="4" step="1"></div>
+          <div class="f"><label for="halfBath">Half baths</label><input type="number" id="halfBath" name="halfBath" min="0" max="2" step="1"></div>
+        </div>
+        <div class="row">
+          <div class="f"><label for="garage">Garage (cars)</label><input type="number" id="garage" name="garage" min="0" max="5" step="1"></div>
+          <div class="f"><label for="fireplaces">Fireplaces</label><input type="number" id="fireplaces" name="fireplaces" min="0" max="4" step="1"></div>
+          <div class="f"><span class="lab" id="air-l">Central air</span>
+            <div class="seg" role="radiogroup" aria-labelledby="air-l">
+              <label><input type="radio" name="air" value="Y">Yes</label>
+              <label><input type="radio" name="air" value="N">No</label>
+            </div></div>
+        </div>
+      </fieldset>
+    </form>
+
+    <aside class="result" id="result" aria-labelledby="val-l">
+      <div>
+        <p class="eyebrow" id="val-l">Estimated sale price</p>
+        <output class="price" id="price" aria-live="polite">—</output>
+        <p class="band">Two in three similar sales land between <b id="lo">—</b> and <b id="hi">—</b>.</p>
+        <div class="track" aria-hidden="true"><i id="band-bar"></i><em id="mark"></em></div>
+        <div class="track-scale" aria-hidden="true"><span>$50k</span><span>$160k median</span><span>$500k</span></div>
+      </div>
+      <div class="warn" id="warn" hidden></div>
+      <div class="drivers">
+        <h2>What moved the price</h2>
+        <p>Compared with a typical Ames house at <b id="base">—</b>: 1,440 sq ft, one story, built 1972, North Ames.</p>
+        <div id="drivers"></div>
+      </div>
+      <button type="button" class="reset" id="reset">Reset to example house</button>
+      <p class="foot">On 439 held-out sales the model was off by ±11.6% typically (R² 0.924). It is not a current market valuation.</p>
+    </aside>
+  </div>
+
+  <section class="method" id="method">
+    <div><h3>The model</h3><p>Ridge regression (λ = 30) on log price with 115 columns: 33 numeric features, six engineered ones like house age and total square footage, and 75 one-hot categories led by neighborhood. The fit is written from scratch in Julia and matches MLJ to 1e-14.</p></div>
+    <div><h3>How it was tested</h3><p>The data was split 70 / 15 / 15 and choices were made with 5-fold cross-validation. The final model was refit on train and validation, then scored once on 439 sales it had never seen: typical error ±11.6%, mean absolute error $13,805.</p></div>
+    <div><h3>What it can't do</h3><p>It knows Ames from 2006 to 2010 only. Its worst misses are cheap pre-1970 houses and non-market sales, such as allocations between family members. Inputs outside the training range get a warning above.</p></div>
+    <div class="ledger">
+      <table>
+        <thead><tr><th>Step</th><th>Model</th><th style="text-align:right">RMSE on log price</th><th style="text-align:right">Typical miss</th></tr></thead>
+        <tbody>
+          <tr><td>Baseline</td><td>Guess the median, $160,000, every time</td><td class="n">0.4326</td><td class="n">±54%</td></tr>
+          <tr><td>Baseline</td><td>Straight line on living area</td><td class="n">0.2895</td><td class="n">±34%</td></tr>
+          <tr><td>Model</td><td>OLS on 33 numeric features, from scratch</td><td class="n">0.1317</td><td class="n">±14%</td></tr>
+          <tr><td>Improvement</td><td>Ridge with engineered and one-hot features</td><td class="n">0.1176</td><td class="n">±12%</td></tr>
+          <tr><td>Improvement</td><td>Random forest, 300 trees (lost to ridge)</td><td class="n">0.1301</td><td class="n">±14%</td></tr>
+          <tr class="final"><td>Final</td><td>Ridge, scored once on the held-out test set</td><td class="n">0.1097</td><td class="n">±11.6%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="dock" id="dock" hidden><span>Estimated sale price</span><b id="dock-price">—</b></div>
+
+<script>
+const DATA = {"model":{"cols":["MS SubClass","Lot Frontage","Lot Area","Overall Qual","Overall Cond","Year Built","Year Remod/Add","Mas Vnr Area","BsmtFin SF 1","BsmtFin SF 2","Bsmt Unf SF","1st Flr SF","2nd Flr SF","Low Qual Fin SF","Bsmt Full Bath","Bsmt Half Bath","Full Bath","Half Bath","Bedroom AbvGr","Kitchen AbvGr","Fireplaces","Garage Yr Blt","Garage Cars","Garage Area","Wood Deck SF","Open Porch SF","Enclosed Porch","3Ssn Porch","Screen Porch","Pool Area","Misc Val","Mo Sold","Yr Sold","Age","Age2","RemodAge","LogLotArea","LogTotalSF","QualxLiv"],"mu":[57.097747,68.882542,10087.055511,6.076026,5.565165,1970.954545,1983.969831,100.685036,436.540426,48.807723,557.565768,1152.532985,332.212792,4.530571,0.425583,0.059936,1.555511,0.375704,2.858809,1.043443,0.596138,1977.848351,1.757844,470.271923,92.899437,46.437249,24.014883,2.39099,15.717619,1.960981,45.981094,6.230893,2007.768302,36.813757,2276.90708,23.798471,9.092497,7.792309,9.432687],"sigma":[42.809227,20.530389,7483.674323,1.401154,1.110575,30.310916,20.900577,176.970477,436.902875,166.926302,434.840999,373.765287,424.669527,46.147368,0.520692,0.244101,0.546376,0.500741,0.825022,0.209731,0.647087,24.919378,0.762349,214.742436,125.214223,64.874365,65.98794,24.493763,56.020396,34.091681,501.399285,2.68609,1.323756,30.364869,2938.459143,20.926758,0.504162,0.304772,4.714205],"levels":[["Neighborhood","CollgCr"],["Neighborhood","OldTown"],["Neighborhood","Edwards"],["Neighborhood","Somerst"],["Neighborhood","Gilbert"],["Neighborhood","NridgHt"],["Neighborhood","Sawyer"],["Neighborhood","NWAmes"],["Neighborhood","SawyerW"],["Neighborhood","BrkSide"],["Neighborhood","Mitchel"],["Neighborhood","Crawfor"],["Neighborhood","IDOTRR"],["Neighborhood","Timber"],["Neighborhood","NoRidge"],["Neighborhood","StoneBr"],["Neighborhood","SWISU"],["Neighborhood","ClearCr"],["Neighborhood","MeadowV"],["Neighborhood","BrDale"],["Neighborhood","Blmngtn"],["Neighborhood","NPkVill"],["Neighborhood","Veenker"],["MS Zoning","RM"],["MS Zoning","FV"],["MS Zoning","RH"],["MS Zoning","C (all)"],["Bldg Type","TwnhsE"],["Bldg Type","Duplex"],["Bldg Type","Twnhs"],["Bldg Type","2fmCon"],["House Style","2Story"],["House Style","1.5Fin"],["House Style","SLvl"],["House Style","SFoyer"],["House Style","2.5Unf"],["House Style","1.5Unf"],["Exter Qual","Gd"],["Exter Qual","Ex"],["Exter Qual","Fa"],["Kitchen Qual","Gd"],["Kitchen Qual","Ex"],["Kitchen Qual","Fa"],["Bsmt Qual","Gd"],["Bsmt Qual","Ex"],["Bsmt Qual","Fa"],["Bsmt Qual","None"],["Garage Finish","RFn"],["Garage Finish","Fin"],["Garage Finish","None"],["Sale Condition","Partial"],["Sale Condition","Abnorml"],["Sale Condition","Family"],["Sale Condition","Alloca"],["Sale Condition","AdjLand"],["Foundation","CBlock"],["Foundation","BrkTil"],["Foundation","Slab"],["Central Air","N"],["Heating QC","TA"],["Heating QC","Gd"],["Heating QC","Fa"],["Fireplace Qu","Gd"],["Fireplace Qu","TA"],["Fireplace Qu","Fa"],["Fireplace Qu","Po"],["Fireplace Qu","Ex"],["Garage Type","Detchd"],["Garage Type","BuiltIn"],["Garage Type","None"],["Garage Type","Basment"],["Garage Type","2Types"],["Garage Type","CarPort"],["Lot Shape","IR1"],["Lot Shape","IR2"],["Lot Shape","IR3"]],"beta":[12.03215498732037,0.0002564531849495859,0.004277939117632473,0.004372595022608182,0.07717751198509178,0.05666545130981115,0.040427288599570274,0.0056895788608597505,0.0024414505300377923,0.030113436540218044,0.006131721686423948,-0.0042670745312144995,0.0423737403881184,0.04651530133675312,0.0024603737776410246,0.00986068253288256,0.0007593064986121882,0.010710200852124777,0.005812455859227802,-0.008336209453201954,-0.010988547623553146,0.014134261849620862,0.011693397101234619,0.015458044426892284,0.006289733251546028,0.006312275384172217,0.00039998305459840644,0.010217662315217962,0.0011785139069211163,0.01245978893470765,0.0012875424594667626,-0.0007776265028901686,0.0013112468540601098,-0.005045111886592441,-0.0405753988997515,0.008324201214135974,-0.006001597524369167,0.03586443809210951,0.08884159996646976,0.028989399595232657,-0.007576230301559009,-0.02582131773275879,-0.033678766190125435,0.025857146968994084,-0.025275283875902048,0.024864673264849604,-0.006364707543304883,-0.0327613642384461,-0.026843285563555357,0.02506833153384786,-0.020382668435534296,0.06906176886890991,-0.057090460646031495,-0.0005486375576228649,0.020968788292916627,0.03621059105664172,0.016894246299521333,0.021769074657146,-0.025821630432918463,-0.006192539245813235,0.002351376848770737,0.007674297542618204,-0.015410074028121997,-0.02714154846917478,0.015282499656676772,-0.0033846252054573105,-0.05629040437315132,0.0009223948158396645,-0.011898851782420979,-0.021836645039690628,0.0022319814607326106,-0.0021762591016097716,0.005964077815490791,0.011448667663619572,0.010164796808794226,0.011271655813206338,0.0015239268738753,0.003357390784859667,0.02301580746495938,-0.03530882086613007,0.006944994793599197,0.041421475433200565,-0.03275584853938201,0.00022847898246406868,0.04031472307559484,-0.02637443439781788,0.018411658832350873,0.000857436395961209,0.012003536023881921,-0.012660247013456275,0.02724618325585491,-0.09618571043388054,-0.02743167746941625,-0.0017757451218248627,0.018288786109987017,-0.021341353035335343,-0.022673614043215724,-0.007603474544948555,-0.03665934238677525,-0.017376216498096793,0.0013337733796930974,-0.019622362210593984,0.009984242269210923,-0.003477932951793453,0.005827154214024479,0.000239440329149443,-0.005388464074736867,0.003359758764880395,-0.003348648788439792,-0.014594538457344364,0.011101584270509902,-0.0071842769022291714,-0.01949117839667981,0.005219875242940915,0.006412012531918803,-0.010763480201063875],"defaults":{"Bsmt Half Bath":0,"Garage Cars":2,"Exter Cond":"TA","Alley":"None","Exter Qual":"TA","Wood Deck SF":0,"Exterior 2nd":"VinylSd","Roof Matl":"CompShg","Pool Area":0,"Bsmt Cond":"TA","Overall Qual":6,"2nd Flr SF":0,"Garage Area":478.5,"Full Bath":2,"Neighborhood":"NAmes","Functional":"Typ","Bsmt Exposure":"No","BsmtFin Type 2":"Unf","Bedroom AbvGr":3,"Garage Yr Blt":1979,"Year Remod/Add":1992.5,"Utilities":"AllPub","Kitchen AbvGr":1,"Mas Vnr Type":"None","Mo Sold":6,"Central Air":"Y","3Ssn Porch":0,"Bsmt Unf SF":468,"Exterior 1st":"VinylSd","Bsmt Qual":"TA","BsmtFin SF 1":370.5,"Gr Liv Area":1440,"MS Zoning":"RL","Garage Qual":"TA","Half Bath":0,"Sale Type":"WD ","Mas Vnr Area":0,"Total Bsmt SF":988,"Electrical":"SBrkr","Garage Type":"Attchd","Foundation":"PConc","Open Porch SF":26,"Condition 2":"Norm","Overall Cond":5,"Screen Porch":0,"Paved Drive":"Y","Yr Sold":2008,"Heating":"GasA","Street":"Pave","Bsmt Full Bath":0,"MS SubClass":50,"Kitchen Qual":"TA","Land Slope":"Gtl","Pool QC":"None","BsmtFin Type 1":"Unf","Bldg Type":"1Fam","Fireplaces":1,"Lot Shape":"Reg","Low Qual Fin SF":0,"BsmtFin SF 2":0,"Garage Cond":"TA","Fireplace Qu":"None","House Style":"1Story","Roof Style":"Gable","Lot Area":9495,"Heating QC":"Ex","Misc Val":0,"TotRms AbvGrd":6,"Enclosed Porch":0,"Sale Condition":"Normal","Land Contour":"Lvl","1st Flr SF":1079,"Lot Frontage":68,"Garage Finish":"Unf","Fence":"None","Misc Feature":"None","Year Built":1972,"Lot Config":"Inside","Condition 1":"Norm"},"metrics":{"test_r2":0.923794164906613,"test_mae_usd":13805.045840647253,"test_rmse_log":0.10966637175954691,"n_test":439}},"nb":{"NAmes":{"median":140000,"n":443},"Gilbert":{"median":183000,"n":165},"StoneBr":{"median":319000,"n":51},"NWAmes":{"median":181000,"n":131},"Somerst":{"median":225500,"n":182},"BrDale":{"median":106000,"n":30},"NPkVill":{"median":143750,"n":23},"NridgHt":{"median":317750,"n":166},"Blmngtn":{"median":191500,"n":28},"NoRidge":{"median":301500,"n":69},"SawyerW":{"median":180000,"n":125},"Sawyer":{"median":135000,"n":151},"BrkSide":{"median":126750,"n":108},"OldTown":{"median":119900,"n":239},"IDOTRR":{"median":106500,"n":93},"ClearCr":{"median":197500,"n":44},"SWISU":{"median":136200,"n":48},"Edwards":{"median":125000,"n":191},"CollgCr":{"median":200000,"n":267},"Crawfor":{"median":200624,"n":103},"Mitchel":{"median":153500,"n":114},"Timber":{"median":232106,"n":72},"MeadowV":{"median":88250,"n":37},"Veenker":{"median":250250,"n":24}},"ranges":{"Gr Liv Area":[334.0,3820.0],"Total Bsmt SF":[0.0,3206.0],"Lot Area":[1300.0,215245.0],"Year Built":[1872.0,2010.0],"Garage Cars":[0.0,5.0],"Full Bath":[0.0,4.0],"Bedroom AbvGr":[0.0,8.0],"Fireplaces":[0.0,4.0]},"median":160000};
+const M = DATA.model;
+const RMSE = M.metrics.test_rmse_log;
+const NAMES = {Blmngtn:"Bloomington Heights",BrDale:"Briardale",BrkSide:"Brookside",ClearCr:"Clear Creek",CollgCr:"College Creek",Crawfor:"Crawford",Edwards:"Edwards",Gilbert:"Gilbert",IDOTRR:"Iowa DOT and Rail Road",MeadowV:"Meadow Village",Mitchel:"Mitchell",NAmes:"North Ames",NoRidge:"Northridge",NPkVill:"Northpark Villa",NridgHt:"Northridge Heights",NWAmes:"Northwest Ames",OldTown:"Old Town",SWISU:"South & West of ISU",Sawyer:"Sawyer",SawyerW:"Sawyer West",Somerst:"Somerset",StoneBr:"Stone Brook",Timber:"Timberland",Veenker:"Veenker"};
+const QUAL = ["","Very poor","Poor","Fair","Below average","Average","Above average","Good","Very good","Excellent","Very excellent"];
+
+// Typical Ames house (training medians) and the example house the page opens with.
+const BASE = {nbhd:"NAmes",area:1440,stories:1,bsmt:988,bsmtFin:370,lot:9495,qual:6,kitchen:"TA",exterior:"TA",built:1972,remod:1993,sold:2008,cond:5,beds:3,fullBath:2,halfBath:0,garage:2,fireplaces:1,air:"Y"};
+const EXAMPLE = {nbhd:"CollgCr",area:1710,stories:2,bsmt:856,bsmtFin:700,lot:8450,qual:7,kitchen:"Gd",exterior:"Gd",built:2003,remod:2003,sold:2008,cond:5,beds:3,fullBath:2,halfBath:1,garage:2,fireplaces:0,air:"Y"};
+const GROUPS = [
+  ["Location",["nbhd"]],
+  ["Size",["area","stories","bsmt","bsmtFin","lot"]],
+  ["Quality",["qual","kitchen","exterior"]],
+  ["Age, condition",["built","remod","sold","cond"]],
+  ["Rooms, features",["beds","fullBath","halfBath","garage","fireplaces","air"]],
+];
+
+// Same features as src/features.jl add_features; checked against Julia's predict_price.
+function predictLog(house){
+  const r = Object.assign({}, M.defaults, house), n = k => Number(r[k]);
+  const e = {Age:n("Yr Sold")-n("Year Built"), RemodAge:n("Yr Sold")-n("Year Remod/Add"),
+    LogLotArea:Math.log(n("Lot Area")), LogTotalSF:Math.log(n("Total Bsmt SF")+n("Gr Liv Area")),
+    QualxLiv:n("Overall Qual")*n("Gr Liv Area")/1000};
+  e.Age2 = e.Age*e.Age;
+  const x = [1];
+  M.cols.forEach((c,i)=>x.push(((c in e ? e[c] : n(c)) - M.mu[i]) / M.sigma[i]));
+  M.levels.forEach(([c,l])=>x.push(String(r[c])===l?1:0));
+  return x.reduce((s,v,i)=>s+v*M.beta[i],0);
+}
+
+// Page inputs to the raw Ames columns the model expects.
+function toHouse(s){
+  const two = +s.stories===2, first = two ? Math.round(s.area*0.55) : +s.area;
+  const fin = Math.min(+s.bsmtFin, +s.bsmt), g = +s.garage, fp = +s.fireplaces;
+  return {
+    "Neighborhood":s.nbhd, "Gr Liv Area":+s.area, "1st Flr SF":first, "2nd Flr SF":+s.area-first, "Low Qual Fin SF":0,
+    "House Style":two?"2Story":"1Story", "Total Bsmt SF":+s.bsmt, "BsmtFin SF 1":fin, "BsmtFin SF 2":0,
+    "Bsmt Unf SF":+s.bsmt-fin, "Bsmt Qual":+s.bsmt>0?"TA":"None", "Bsmt Full Bath":+s.bsmt>0?M.defaults["Bsmt Full Bath"]:0,
+    "Lot Area":+s.lot, "Overall Qual":+s.qual, "Overall Cond":+s.cond, "Kitchen Qual":s.kitchen, "Exter Qual":s.exterior,
+    "Year Built":+s.built, "Year Remod/Add":Math.max(+s.remod,+s.built), "Yr Sold":+s.sold, "Garage Yr Blt":+s.built,
+    "Bedroom AbvGr":+s.beds, "Full Bath":+s.fullBath, "Half Bath":+s.halfBath,
+    "Garage Cars":g, "Garage Area":g*240, "Garage Type":g?"Attchd":"None", "Garage Finish":g?"Unf":"None",
+    "Fireplaces":fp, "Fireplace Qu":fp?"Gd":"None", "Central Air":s.air, "Sale Condition":"Normal",
+  };
+}
+
+const $ = id => document.getElementById(id);
+const form = $("form");
+const usd = v => "$" + Math.round(v).toLocaleString("en-US");
+const usdK = v => "$" + Math.round(v/1000).toLocaleString("en-US") + "k";
+const pct = v => (v>=0?"+":"−") + Math.abs(v*100).toFixed(Math.abs(v)<0.1?1:0) + "%";
+
+Object.entries(DATA.nb).sort((a,b)=>a[1].median-b[1].median).forEach(([k,v])=>{
+  const o = document.createElement("option"); o.value = k; o.textContent = `${NAMES[k]||k} · median ${usdK(v.median)}`; $("nbhd").append(o);
+});
+
+function read(){
+  const s = {};
+  for (const k of Object.keys(BASE)) {
+    const el = form.elements[k];
+    s[k] = el.value;
+    if (typeof BASE[k] === "number") s[k] = s[k] === "" ? NaN : Number(s[k]);
+  }
+  return s;
+}
+function write(s){
+  for (const [k,v] of Object.entries(s)) {
+    const el = form.elements[k];
+    if (el instanceof RadioNodeList) { for (const r of el) r.checked = String(r.value) === String(v); }
+    else el.value = v;
+  }
+}
+
+const R = DATA.ranges;
+function checks(s){
+  const out = [];
+  const fmt = v => v.toLocaleString("en-US", {useGrouping: v >= 10000});
+  const chk = (v, [lo,hi], label) => { if (v<lo || v>hi) out.push(`${label} of ${fmt(v)} is outside the ${fmt(lo)}–${fmt(hi)} range the model learned from`); };
+  chk(s.area, R["Gr Liv Area"], "Living area");
+  chk(s.bsmt, R["Total Bsmt SF"], "A basement");
+  chk(s.lot, R["Lot Area"], "A lot");
+  chk(s.built, R["Year Built"], "A build year");
+  if (s.bsmtFin > s.bsmt) out.push("The finished basement is larger than the basement, so the basement size is used");
+  return out;
+}
+
+const baseLog = predictLog(toHouse(BASE));
+$("base").textContent = usd(Math.round(Math.exp(baseLog)/100)*100);
+
+function render(){
+  const s = read();
+  const bad = Object.keys(BASE).filter(k => typeof BASE[k]==="number" && !Number.isFinite(s[k]));
+  for (const k of Object.keys(BASE)) { const el = form.elements[k]; if (el && !(el instanceof RadioNodeList) && el.type === "number") el.setAttribute("aria-invalid", bad.includes(k)); }
+  if (bad.length) return;
+
+  const lp = predictLog(toHouse(s)), p = Math.exp(lp);
+  const lo = Math.exp(lp - RMSE), hi = Math.exp(lp + RMSE);
+  $("price").textContent = usd(Math.round(p/100)*100);
+  $("dock-price").textContent = usd(Math.round(p/100)*100);
+  $("lo").textContent = usd(Math.round(lo/1000)*1000);
+  $("hi").textContent = usd(Math.round(hi/1000)*1000);
+
+  const pos = v => Math.min(100, Math.max(0, (Math.log(v) - Math.log(50000)) / (Math.log(500000) - Math.log(50000)) * 100));
+  $("band-bar").style.left = pos(lo) + "%"; $("band-bar").style.width = (pos(hi) - pos(lo)) + "%";
+  $("mark").style.left = `calc(${pos(p)}% - 1px)`;
+
+  const w = checks(s); $("warn").hidden = !w.length; $("warn").textContent = w.length ? w.join(". ") + ". Treat this estimate with care." : "";
+
+  // Swap each group from the typical house to this one, in order; the effects multiply to the total.
+  let cur = Object.assign({}, BASE), prev = baseLog; const rows = [];
+  for (const [name, keys] of GROUPS) {
+    keys.forEach(k => cur[k] = s[k]);
+    const now = predictLog(toHouse(cur)); rows.push([name, now - prev]); prev = now;
+  }
+  const maxAbs = Math.max(0.05, ...rows.map(r => Math.abs(Math.exp(r[1]) - 1)));
+  $("drivers").innerHTML = rows.map(([name, d]) => {
+    const e = Math.exp(d) - 1, dir = e >= 0 ? "up" : "down", w = (Math.abs(e) / maxAbs * 50).toFixed(1);
+    return `<div class="drv"><span>${name}</span><span class="bar"><i class="${dir}" style="width:${w}%"></i></span><span class="v ${dir}">${pct(e)}</span></div>`;
+  }).join("");
+
+  $("qual-o").innerHTML = `<b>${s.qual}</b> · ${QUAL[s.qual]}`;
+  $("cond-o").innerHTML = `<b>${s.cond}</b> · ${QUAL[s.cond]}`;
+  const nb = DATA.nb[s.nbhd];
+  $("nbhd-hint").textContent = `${nb.n} sales in the data, median ${usd(nb.median)}.`;
+}
+
+form.addEventListener("input", render);
+form.addEventListener("submit", e => e.preventDefault());
+$("reset").addEventListener("click", () => { write(EXAMPLE); render(); });
+write(EXAMPLE); render();
+
+const mq = matchMedia("(max-width: 880px)");
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(([en]) => { $("dock").hidden = !(mq.matches && !en.isIntersecting); }).observe($("price"));
+}
+</script>
+
+</body>
+</html>

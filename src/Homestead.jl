@@ -7,6 +7,10 @@ include("features.jl")
 include("linear.jl")
 include("evaluate.jl")
 include("model_io.jl")
+include("recipe.jl")
+include("online.jl")
+include("evolve.jl")
+include("replay.jl")
 
 export load_raw, clean, split_indices
 export rmse, mae, r2, pct_error
@@ -16,5 +20,7 @@ export add_features, FeaturesV2, fit_features_v2, feature_names, CATEGORICALS
 export LinearModel, fit_ols, fit_ols_normal, fit_ridge, fit_gd
 export kfold, cross_validate, worst_residuals
 export SavedModel, save_model, load_model, predict_price
+export FeatureBank, Recipe, Transform, fit_transform, build, nfeatures, describe_recipe, ENGINEERED
+export OnlineRidge, update!, Population, evolve!, fitness, replay, MonthResult
 
 end # module

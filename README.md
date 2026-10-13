@@ -42,6 +42,58 @@ RMSE on log(price): 0.10 means predictions are typically off by about 10%.
 - **Some houses are the noise floor.** A $40k house from 1920 and two
   "Alloca" (allocation, non-market) sales top the miss list in every version.
 
+## Self-improving system
+
+The model above is trained once. This part makes it keep learning. The 2006–2010
+sales are replayed one month at a time (`src/replay.jl`), and each month, in order:
+
+1. every system prices that month's houses **before** seeing what they sold for
+2. the systems absorb the month's sales
+3. a genetic search (`src/evolve.jl`) evolves the *recipe*: which columns,
+   engineered features and categories to use, and the ridge λ. A new recipe goes
+   live only if it beats the current one by 5% on the most recent months.
+4. a drift monitor watches the typical error and gives the search more
+   generations when it jumps
+
+Weights inside a recipe are updated with every single sale by recursive least
+squares (`src/online.jl`), which gives exactly the same answer as refitting
+ridge from scratch (tested to 1e-8) at a fraction of the cost.
+
+All three systems start from the plain v1 recipe (numeric columns only), because
+the hand-built v2 features were chosen while looking at all five years.
+
+| System | Error on unseen sales (RMSE, log) | First year | Last year |
+|---|---|---|---|
+| Frozen: fit on the first 6 months, never updated | 0.1475 (±15.9%) | 0.1402 | 0.1550 |
+| Online: same recipe, weights updated each sale | 0.1345 (±14.4%) | 0.1259 | 0.1467 |
+| **Self-improving: online + recipe evolution + drift** | **0.1253 (±13.3%)** | 0.1198 | 0.1334 |
+
+What it found and what went wrong along the way:
+
+- **It rediscovered the hand-built features.** The final evolved recipe uses
+  neighborhood, kitchen/exterior/basement quality, log total square footage,
+  quality², and quality × age, without being told about any of them.
+- **The first version promoted too eagerly.** With a 1% bar it swapped recipes in
+  47 of 49 months, chasing noise. A 5% bar gave the same accuracy (0.1252 vs
+  0.1253) with 29 promotions, so 5% is the default.
+- **One sale is not drift.** February 2008's error spiked to 0.33. The cause was
+  a single $13,100 abnormal sale, not the housing crash, so drift is measured with
+  the median error, which one outlier can't move.
+- **Ames barely felt the 2008 crash.** Drift mostly fires in thin winter months,
+  not in a clear crash window. A college town held its prices.
+
+Output: `results/replay.csv` (month by month) and `results/promotions.json`
+(every recipe change and why). Run it with `julia --project=. scripts/06_replay.jl`
+(about 45 seconds).
+
+### Next: a decade later
+
+The City of Ames publishes 2,224 sales from 2020–2022. 637 of them are the same
+parcels that sold in 2006–2010; in 422 the living area is unchanged. The typical
+house sold for 1.47× its earlier price, and cheaper neighborhoods rose the most
+(Edwards 1.59×, Northridge Heights 1.27×). Those repeat sales will test how far
+a 2010 model drifts in a decade, and how much the self-improving loop recovers.
+
 ## Architecture
 
 ```mermaid
@@ -60,13 +112,15 @@ flowchart LR
 
 ```sh
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
-julia --project=. test/runtests.jl            # 31 unit tests
+julia --project=. scripts/00_download.jl       # both public datasets
+julia --project=. test/runtests.jl            # 39 unit tests
 julia --project=. scripts/01_baseline.jl      # steps 3–7 in order
 julia --project=. scripts/02_linear.jl
 julia --project=. scripts/03_evaluate.jl
 julia --project=. scripts/04_improve.jl
 julia --project=. scripts/05_train_final.jl   # writes model/homestead_v2.json, scores test set
 julia --project=. test/test_serve.jl          # integration test of the endpoint
+julia --project=. scripts/06_replay.jl        # self-improving replay, ~45 s
 ```
 
 ### API
@@ -97,6 +151,11 @@ src/linear.jl      OLS (normal equation + QR), ridge, gradient descent
 src/evaluate.jl    k-fold CV, worst residuals
 src/model_io.jl    save/load JSON, predict from raw fields
 src/serve.jl       HTTP.jl endpoint
+src/recipe.jl      feature bank and recipes the search evolves
+src/online.jl      online ridge by recursive least squares
+src/evolve.jl      genetic search over recipes
+src/replay.jl      month-by-month replay, promotion, drift monitor
+docs/index.html    browser predictor app (GitHub Pages)
 scripts/           one script per step of the loop
 test/              unit tests + endpoint integration test
 ```

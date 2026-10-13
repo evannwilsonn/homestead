@@ -74,3 +74,30 @@ end
     @test all(x -> x == 0.0 || x == 1.0, X[:, end-length(f.levels)+1:end])   # dummies are 0/1
     @test !any(l -> l == ("Neighborhood", "NAmes"), f.levels)         # most common level is the reference
 end
+
+@testset "online ridge (RLS) matches batch ridge" begin
+    using Random, LinearAlgebra
+    rng = MersenneTwister(3)
+    X = hcat(ones(300), randn(rng, 300, 6)); y = X * randn(rng, 7) .+ 0.1 .* randn(rng, 300)
+    m = OnlineRidge(X[1:50, :], y[1:50], 5.0)
+    update!(m, X[51:300, :], y[51:300])
+    @test m.β ≈ fit_ridge(X, y, 5.0).β atol = 1e-8         # absorbing 250 sales one by one == refitting on all 300
+    @test m.n == 300
+end
+
+@testset "recipes and genetic search" begin
+    using Random
+    df = clean(load_raw()); bank = FeatureBank(df)
+    @test !("Yr Sold" in bank.names) && !("SalePrice" in bank.names)       # time and target never become features
+    r = Recipe(bank, ["Gr Liv Area", "Overall Qual"], ["Neighborhood"], 10.0)
+    @test nfeatures(r) == 3
+    t = fit_transform(bank, r, 1:1000)
+    X = build(bank, t, 1001:1100)
+    @test size(X, 2) == 1 + 2 + length(t.dummies) && all(X[:, 1] .== 1)
+    @test all(x -> x == 0 || x == 1, X[:, 4:end])
+    y = Vector{Float64}(df[!, "LogSalePrice"])
+    p1 = Population(r; rng = MersenneTwister(1)); b1, f1 = evolve!(p1, bank, y, 1:1500, 1501:2000; generations = 2)
+    p2 = Population(r; rng = MersenneTwister(1)); b2, f2 = evolve!(p2, bank, y, 1:1500, 1501:2000; generations = 2)
+    @test b1 == b2 && f1 == f2                                              # same seed, same search
+    @test f1 <= fitness(bank, y, r, 1:1500, 1501:2000)                      # elitism: never worse than the seed
+end
