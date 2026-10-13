@@ -119,6 +119,15 @@ starting point is a little better than it would be for a brand-new house.
 
 Output: `results/decade_predictions.csv`. Run it with `julia --project=. scripts/07_decade.jl`.
 
+### Today's dollars in the app
+
+`scripts/08_export_today.jl` fits that correction on all 422 repeat sales and
+writes `model/today_correction.json`. The browser app (`docs/index.html`) uses it
+to show a **late-2022** estimate by default, with the ±14.9% band measured in the
+exam above. It also rolls that forward to mid-2026 using the FHFA index alone,
+labeled as not yet checked against sales, since no newer Ames sales file exists.
+The JavaScript port matches Julia to 1e-8.
+
 ## Architecture
 
 ```mermaid
@@ -147,6 +156,7 @@ julia --project=. scripts/05_train_final.jl   # writes model/homestead_v2.json, 
 julia --project=. test/test_serve.jl          # integration test of the endpoint
 julia --project=. scripts/06_replay.jl        # self-improving replay, ~45 s
 julia --project=. scripts/07_decade.jl        # 2020–2022 repeat-sale exam
+julia --project=. scripts/08_export_today.jl  # decade correction for the app
 ```
 
 ### API
