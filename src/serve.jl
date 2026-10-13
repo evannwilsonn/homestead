@@ -38,6 +38,7 @@ end
 
 function start(; host = "127.0.0.1", port = 8080, async = false)
     MODEL[] = load_model(MODEL_PATH)
+    predict_price(MODEL[], Dict{String,Any}())   # warm-up: compile the predict path before the first request
     @info "homestead serving on http://$host:$port  ($(length(MODEL[].β)) coefficients)"
     HTTP.serve!(handle, host, port)
 end

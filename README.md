@@ -75,7 +75,7 @@ julia --project=. test/test_serve.jl          # integration test of the endpoint
 julia --project=. src/serve.jl                # http://127.0.0.1:8080
 curl -X POST localhost:8080/predict -H 'Content-Type: application/json' \
   -d '{"Gr Liv Area": 1500, "Overall Qual": 7, "Year Built": 2005, "Neighborhood": "CollgCr"}'
-# → {"price":177555,"log_price":12.087}
+# → {"price":179971,"log_price":12.1006}
 ```
 
 Any Ames column may be sent. Missing ones take the training median or mode.
